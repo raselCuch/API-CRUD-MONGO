@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,53 +17,54 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Persona;
 import com.example.demo.repository.PersonaRepository;
+import com.example.demo.service.PersonaService;
 
 @RestController
 @RequestMapping("/Persona")
 public class PersonaController {
 
     @Autowired
-    private PersonaRepository repositorio;
+    PersonaService personaService;
 
     @PostMapping // localhost:8080/Persona
-    public ResponseEntity<?> savePersona(@RequestBody Persona persona) {
+    public ResponseEntity<Persona> savePersona(@RequestBody Persona persona) {
         try {
-            Persona personaSave = repositorio.save(persona);
-            return new ResponseEntity<Persona>(personaSave, HttpStatus.CREATED);
+            Persona personaSave = personaService.guardarPersona(persona);
+            return new ResponseEntity<>(personaSave, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping
     public ResponseEntity<?> findPersona() {
         try {
-            List<Persona> personaAll = repositorio.findAll();
-            return new ResponseEntity<List<Persona>>(personaAll, HttpStatus.OK);
+            ArrayList<Persona> personaAll = personaService.obtenerPersonas();
+            // logger.info("Numero de usuarios recuperados: {}", personaAll.size());
+            return new ResponseEntity<>(personaAll, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+            // logger.error(MensajesParametrizados.MENSAJE_ERROR_INTERNO_SERVIDOR, e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping
-    public ResponseEntity<?> updatePersona(@RequestBody Persona persona) {
+    public ResponseEntity<Persona> updatePersona(@RequestBody Persona persona) {
         try {
-            Persona personaSave = repositorio.save(persona);
-            return new ResponseEntity<Persona>(personaSave, HttpStatus.ACCEPTED);
+            Persona personaSave = personaService.actualizarPersona(persona);
+            return new ResponseEntity<>(personaSave, HttpStatus.ACCEPTED);
         } catch (Exception e) {
-            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping(value = "/{id}")// localhost:8080/Persona/0
-    public ResponseEntity<?> deletePersona(@PathVariable("id") Integer id) {
+    @DeleteMapping(value = "/{id}") // localhost:8080/Persona/0
+    public ResponseEntity<String> deletePersona(@PathVariable("id") Integer id) {
         try {
-            // Persona personaSave = 
-            repositorio.deleteById(id);
-            return new ResponseEntity<String>("Fué eliminado", HttpStatus.ACCEPTED);
+            personaService.eliminarPersona(id);
+            return new ResponseEntity<>("Fue eliminado", HttpStatus.ACCEPTED);
         } catch (Exception e) {
-            return new ResponseEntity<String>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getCause().toString(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }
